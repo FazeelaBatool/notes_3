@@ -446,17 +446,19 @@
 
         async function fetchNotes() {
             try {
-                const res = await fetch(`/notes/${userId}`);
-                const notes = await res.json();
+                const res = await fetch('/notes', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
                 const container = document.getElementById("notesContainer");
                 container.innerHTML = "";
-                
-                if (notes.length === 0) {
+
+                if (!data.notes || data.notes.length === 0) {
                     container.innerHTML = `<p style="text-align: center; color: #888;">You don't have any notes yet. Create your first note above!</p>`;
                     return;
                 }
-                
-                notes.forEach(note => {
+
+                data.notes.forEach(note => {
                     container.innerHTML += `
                         <div class="note fade-in" id="note-${note._id}">
                             <h4>${escapeHtml(note.title)}</h4>
@@ -502,7 +504,10 @@
                     // Update existing note
                     await fetch(`/notes/${currentNote}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ title, content })
                     });
                     currentNote = null;
@@ -510,8 +515,11 @@
                     // Add new note
                     await fetch('/notes', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, content, userId })
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title, content })
                     });
                 }
                 
@@ -543,7 +551,10 @@
         async function deleteNote(id) {
             if (confirm("Are you sure you want to delete this note?")) {
                 try {
-                    await fetch(`/notes/${id}`, { method: 'DELETE' });
+                    await fetch(`/notes/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     
                     // Add fade-out animation
                     const noteElement = document.getElementById(`note-${id}`);
@@ -572,10 +583,12 @@
 
         async function fetchProfile() {
             try {
-                const res = await fetch(`/profile/${userId}`);
-                const user = await res.json();
-                document.getElementById("profileUsername").value = user.username || "";
-                document.getElementById("profileEmail").value = user.email || "";
+                const res = await fetch(`/profile/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById("profileUsername").value = data.user.username || "";
+                document.getElementById("profileEmail").value = data.user.email || "";
             } catch (error) {
                 showAlert("Error fetching profile");
                 console.error(error);
@@ -594,7 +607,10 @@
             try {
                 await fetch(`/profile/${userId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ username, email })
                 });
 
