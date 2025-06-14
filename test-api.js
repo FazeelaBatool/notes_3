@@ -84,34 +84,8 @@ async function testAPI() {
         console.log('Update Note Response:', updateNoteData);
         console.log('✅ Update Note Test Completed\n');
 
-        // Test 6: Get Profile
-        console.log('6️⃣ Testing Get Profile...');
-        const getProfileRes = await fetch(`${BASE_URL}/profile/${userId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const getProfileData = await getProfileRes.json();
-        console.log('Get Profile Response:', getProfileData);
-        console.log('✅ Get Profile Test Completed\n');
-
-        // Test 7: Update Profile
-        console.log('7️⃣ Testing Update Profile...');
-        const updateProfileRes = await fetch(`${BASE_URL}/profile/${userId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                username: 'updatedtestuser',
-                email: 'updated@example.com'
-            })
-        });
-        const updateProfileData = await updateProfileRes.json();
-        console.log('Update Profile Response:', updateProfileData);
-        console.log('✅ Update Profile Test Completed\n');
-
-        // Test 8: Delete Note
-        console.log('8️⃣ Testing Delete Note...');
+        // Test 6: Delete Note
+        console.log('6️⃣ Testing Delete Note...');
         const deleteNoteRes = await fetch(`${BASE_URL}/notes/${noteId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }

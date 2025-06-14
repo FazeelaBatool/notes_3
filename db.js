@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 require("dotenv").config(); // Load environment variables
 
 const connectDB = async () => {
-  const MONGO_URI = process.env.MONGO_URI;
+  const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/notesdb';
   
   if (!MONGO_URI) {
     console.error("❌ MongoDB URI is not set in environment variables!");
@@ -14,7 +14,12 @@ const connectDB = async () => {
   
   while (retries > 0) {
     try {
-      await mongoose.connect(MONGO_URI);
+      // Force the database name to be lowercase
+      const uri = MONGO_URI.replace(/\/\/([^/]+)\/([^/?]+)/, (match, host, db) => {
+        return `//${host}/${db.toLowerCase()}`;
+      });
+
+      await mongoose.connect(uri);
 
       console.log("✅ Connected to MongoDB successfully!");
       return;

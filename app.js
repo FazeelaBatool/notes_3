@@ -323,25 +323,51 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Graceful Shutdown
+// Start server with error handling
+const server = app.listen(PORT, () => {
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} is already in use. Please try these solutions:`);
+        console.error('1. Stop the other application using this port');
+        console.error('2. Use a different port by setting the PORT environment variable');
+        console.error('3. Run this command to find and kill the process:');
+        console.error(`   Windows: netstat -ano | findstr :${PORT}`);
+        console.error(`   Linux/Mac: lsof -i :${PORT}`);
+        process.exit(1);
+    } else {
+        console.error('❌ Server error:', err);
+        process.exit(1);
+    }
+});
+
+// Graceful shutdown
 const gracefulShutdown = async (signal) => {
-    console.log(`\n🛑 Received ${signal}. Closing MongoDB connection...`);
+    console.log(`\n${signal} signal received. Shutting down gracefully...`);
+    
     try {
+        // Close server
+        await new Promise((resolve, reject) => {
+            server.close((err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        // Close database connection
         await mongoose.connection.close();
-        console.log("✅ MongoDB connection closed.");
+        
+        console.log('✅ Server and database connections closed');
         process.exit(0);
-    } catch (error) {
-        console.error("Error during shutdown:", error);
+    } catch (err) {
+        console.error('❌ Error during shutdown:', err);
         process.exit(1);
     }
 };
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
-// Start the server
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`✅ Server is running on port ${PORT}`);
-    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 module.exports = app;
