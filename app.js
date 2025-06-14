@@ -89,10 +89,11 @@ const User = mongoose.model("User", userSchema);
 // Notes Schema
 const noteSchema = new mongoose.Schema({
     title: { type: String, required: true, trim: true, maxlength: 100 },
-    content: { type: String, required: true, trim: true },
+    content: { type: String, required: true, trim: true, maxlength: 5000 },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    createdAt: { type: Date, default: Date.now }
-});
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+}, { timestamps: true });
 const Note = mongoose.model("Note", noteSchema);
 
 // Signup Route
@@ -315,6 +316,35 @@ app.put("/profile/:id", authMiddleware, async (req, res) => {
             });
         }
         res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// Search Notes
+app.get("/notes/search", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { query } = req.query;
+        
+        if (!query) {
+            return res.status(400).json({ message: "Search query is required" });
+        }
+
+        const searchRegex = new RegExp(query, 'i');
+        const notes = await Note.find({
+            userId,
+            $or: [
+                { title: searchRegex },
+                { content: searchRegex }
+            ]
+        }).sort({ updatedAt: -1 });
+
+        res.json({
+            notes,
+            count: notes.length,
+            message: notes.length > 0 ? "Search results found" : "No matching notes found"
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 });
 
