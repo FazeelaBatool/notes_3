@@ -1,0 +1,22 @@
+# Dockerfile.test
+
+FROM python:3.9-slim
+
+# Install Chromium and drivers
+RUN apt-get update && apt-get install -y \
+    chromium-driver \
+    chromium \
+    xvfb \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy test files
+COPY . .
+
+# Install dependencies
+RUN pip install -r requirements.txt
+
+# Run tests
+CMD ["xvfb-run", "python3", "test_suite.py"]

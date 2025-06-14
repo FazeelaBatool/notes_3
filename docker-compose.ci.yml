@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notes-app
+    ports:
+      - "8080:8080"
+
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: selenium-tests
+    depends_on:
+      - app
+    environment:
+      - DISPLAY=:99
+    command: xvfb-run python3 test_suite.py
