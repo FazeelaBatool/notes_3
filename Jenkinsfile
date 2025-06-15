@@ -23,9 +23,7 @@ pipeline {
 
     post {
         always {
-            script {
-                sh "docker-compose -f ${COMPOSE_FILE} down"
-            }
+            sh "docker-compose -f ${COMPOSE_FILE} down"
         }
         success {
             echo "✅ App built and tests passed!"
